@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkillSwap Campus — Exchange Skills. Build Connections. Grow Together.</title>
+  <meta name="description" content="SkillSwap Campus is a peer-to-peer skill exchange platform for college students. Teach what you know, learn what you love — no money involved." />
+  <meta property="og:title" content="SkillSwap Campus — Exchange Skills. Grow Together." />
+  <meta property="og:description" content="Peer-to-peer skill exchange for college students. Trade your Python skills for someone's Photoshop expertise." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="container header-inner">
+      <a href="#/" class="logo">
+        <span class="logo-mark">✦</span>
+        <span>SkillSwap <span class="gradient-text">Campus</span></span>
+      </a>
+
+      <nav class="nav" id="nav">
+        <a href="#/">Home</a>
+        <a href="#/explore">Explore Skills</a>
+        <a href="#/how-it-works">How It Works</a>
+        <a href="#/community">Community</a>
+        <a href="#/courses">Courses</a>
+        <a href="#/dashboard">Dashboard</a>
+      </nav>
+
+      <div class="header-actions" id="auth-actions">
+        <button class="btn btn-ghost btn-sm" id="theme-toggle" aria-label="Toggle theme">🌙</button>
+        <a class="btn btn-ghost btn-sm desktop-only" href="#/login">Login</a>
+        <a class="btn btn-primary btn-sm desktop-only" href="#/signup">Get Started</a>
+        <button class="menu-btn" id="menu-btn" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="app"></main>
+
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div>
+        <div class="logo"><span class="logo-mark">✦</span><span>SkillSwap Campus</span></div>
+        <p class="muted" style="margin-top:.75rem;font-size:.9rem;max-width:32ch">
+          Exchange skills. Build connections. Grow together — the peer-to-peer campus movement.
+        </p>
+      </div>
+      <div>
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#/explore">Explore Skills</a></li>
+          <li><a href="#/matches">Skill Matches</a></li>
+          <li><a href="#/community">Community</a></li>
+          <li><a href="#/courses">Courses</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#/how-it-works">How It Works</a></li>
+          <li><a href="#/">About</a></li>
+          <li><a href="#/">Careers</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Get the latest</h4>
+        <p class="muted" style="font-size:.88rem">Skill drops and student stories every Sunday.</p>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 SkillSwap Campus • Built with ♥ for students</div>
+  </footer>
+
+  <div id="modal-root"></div>
+  <div id="toasts"></div>
+
+  <script src="data.js"></script>
+  <!-- API Client -->
+<script src="api.js"></script>
+<!-- App Logic -->
+<script src="script.js"></script>
+</body>
+</html>

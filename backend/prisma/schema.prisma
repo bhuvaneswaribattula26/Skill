@@ -1,0 +1,253 @@
+// Prisma Schema for SkillSwap Campus
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // Supabase transaction poolers are ideal for the running app, but Prisma
+  // schema changes require the project's direct PostgreSQL connection.
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── User ──────────────────────────────────────────────────────────────────
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String
+  name          String
+  bio           String   @default("")
+  avatarUrl     String   @default("")
+  collegeName   String   @default("")
+  isVerified    Boolean  @default(false)
+  isSuspended   Boolean  @default(false)
+  isAdmin       Boolean  @default(false)
+  verifyToken   String?  @unique
+  verifyExpires DateTime?
+  credits       Int      @default(0) // kept for quick reads; source of truth is CreditTransaction SUM
+  lastActiveAt  DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  skillsTeach        UserSkillTeach[]
+  skillsLearn        UserSkillLearn[]
+  swapsAsRequester   SwapRequest[]    @relation("Requester")
+  swapsAsRecipient   SwapRequest[]    @relation("Recipient")
+  creditTransactions CreditTransaction[]
+  reviewsGiven       Review[]         @relation("Reviewer")
+  reviewsReceived    Review[]         @relation("Reviewee")
+  notifications      Notification[]
+  messages           Message[]
+  reports            Report[]         @relation("Reporter")
+  reportedBy         Report[]         @relation("Reported")
+  refreshTokens      RefreshToken[]
+
+  @@index([email])
+  @@index([isVerified, isSuspended])
+}
+
+// ─── Skill ─────────────────────────────────────────────────────────────────
+model Skill {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  category        String
+  canonicalSkillId String? // self-relation for synonyms (e.g. "ML" -> "Machine Learning")
+  canonicalSkill  Skill?   @relation("SkillSynonyms", fields: [canonicalSkillId], references: [id])
+  synonyms        Skill[]  @relation("SkillSynonyms")
+  createdAt       DateTime @default(now())
+
+  usersTeaching   UserSkillTeach[]
+  usersLearning   UserSkillLearn[]
+  swapRequests    SwapRequest[]
+
+  @@index([name])
+  @@index([category])
+}
+
+// ─── UserSkillTeach ────────────────────────────────────────────────────────
+model UserSkillTeach {
+  id         String @id @default(cuid())
+  userId     String
+  skillId    String
+  proficiency String @default("Intermediate") // Beginner | Intermediate | Advanced
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill      Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId])
+  @@index([skillId])
+}
+
+// ─── UserSkillLearn ────────────────────────────────────────────────────────
+model UserSkillLearn {
+  id         String @id @default(cuid())
+  userId     String
+  skillId    String
+  proficiency String @default("Beginner")
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill      Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId])
+  @@index([skillId])
+}
+
+// ─── SwapRequest ───────────────────────────────────────────────────────────
+enum SwapStatus {
+  requested
+  accepted
+  declined
+  scheduled
+  completed
+  cancelled
+}
+
+model SwapRequest {
+  id          String     @id @default(cuid())
+  requesterId String
+  recipientId String
+  skillId     String?    // the primary skill being swapped
+  message     String     @default("")
+  status      SwapStatus @default(requested)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  requester   User    @relation("Requester", fields: [requesterId], references: [id])
+  recipient   User    @relation("Recipient", fields: [recipientId], references: [id])
+  skill       Skill?  @relation(fields: [skillId], references: [id])
+  sessions    Session[]
+  messages    Message[]
+
+  @@index([requesterId])
+  @@index([recipientId])
+  @@index([status])
+}
+
+// ─── Session ───────────────────────────────────────────────────────────────
+enum SessionStatus {
+  scheduled
+  completed
+  cancelled
+}
+
+model Session {
+  id              String        @id @default(cuid())
+  swapRequestId   String
+  scheduledAt     DateTime
+  durationMinutes Int           @default(60)
+  status          SessionStatus @default(scheduled)
+  meetingLink     String        @default("")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  swapRequest         SwapRequest        @relation(fields: [swapRequestId], references: [id])
+  creditTransactions  CreditTransaction[]
+  reviews             Review[]
+
+  @@index([swapRequestId])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+// ─── CreditTransaction (append-only ledger) ───────────────────────────────
+model CreditTransaction {
+  id               String   @id @default(cuid())
+  userId           String
+  amount           Int      // positive = earned, negative = spent
+  relatedSessionId String?
+  reason           String
+  createdAt        DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id])
+  session Session? @relation(fields: [relatedSessionId], references: [id])
+
+  @@index([userId])
+  @@index([relatedSessionId])
+}
+
+// ─── Review ───────────────────────────────────────────────────────────────
+model Review {
+  id         String   @id @default(cuid())
+  sessionId  String
+  reviewerId String
+  revieweeId String
+  rating     Int      // 1-5
+  comment    String   @default("")
+  createdAt  DateTime @default(now())
+
+  session  Session @relation(fields: [sessionId], references: [id])
+  reviewer User    @relation("Reviewer", fields: [reviewerId], references: [id])
+  reviewee User    @relation("Reviewee", fields: [revieweeId], references: [id])
+
+  @@unique([sessionId, reviewerId]) // one review per reviewer per session
+  @@index([revieweeId])
+  @@index([sessionId])
+}
+
+// ─── Message ──────────────────────────────────────────────────────────────
+model Message {
+  id            String   @id @default(cuid())
+  swapRequestId String
+  senderId      String
+  content       String
+  createdAt     DateTime @default(now())
+
+  swapRequest SwapRequest @relation(fields: [swapRequestId], references: [id])
+  sender      User        @relation(fields: [senderId], references: [id])
+
+  @@index([swapRequestId, createdAt])
+}
+
+// ─── Notification ─────────────────────────────────────────────────────────
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // swap_request | swap_accepted | session_reminder | review_prompt | credit_earned
+  payload   Json     @default("{}")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, read])
+  @@index([createdAt])
+}
+
+// ─── Report ───────────────────────────────────────────────────────────────
+enum ReportStatus {
+  pending
+  resolved
+  dismissed
+}
+
+model Report {
+  id             String       @id @default(cuid())
+  reporterId     String
+  reportedUserId String
+  reason         String
+  status         ReportStatus @default(pending)
+  adminNote      String       @default("")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  reporter     User @relation("Reporter", fields: [reporterId], references: [id])
+  reportedUser User @relation("Reported", fields: [reportedUserId], references: [id])
+
+  @@index([status])
+  @@index([reportedUserId])
+}
+
+// ─── RefreshToken ─────────────────────────────────────────────────────────
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+}
