@@ -18,6 +18,9 @@ import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
 
+// Render and other hosts forward requests through a proxy. Trusting the first
+// proxy makes req.ip represent the visitor instead of one shared proxy IP.
+app.set('trust proxy', 1);
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: config.corsOrigin === '*' ? true : config.corsOrigin }));
 app.use(express.json());

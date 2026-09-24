@@ -6,6 +6,8 @@ interface RateLimitOptions {
   windowSeconds: number;
   maxRequests: number;
   keyPrefix?: string;
+  /** Include the submitted email so students on a shared college network do not share one bucket. */
+  keyByEmail?: boolean;
 }
 
 export function rateLimit(opts: RateLimitOptions) {
@@ -13,7 +15,10 @@ export function rateLimit(opts: RateLimitOptions) {
     const redis = await getRedis();
     const ip = req.ip || req.socket.remoteAddress || 'unknown';
     const prefix = opts.keyPrefix || 'rl';
-    const key = `${prefix}:${ip}`;
+    const submittedEmail = opts.keyByEmail && typeof req.body?.email === 'string'
+      ? req.body.email.trim().toLowerCase().slice(0, 254)
+      : '';
+    const key = submittedEmail ? `${prefix}:${ip}:${submittedEmail}` : `${prefix}:${ip}`;
 
     try {
       const count = await redis.incr(key);
@@ -40,6 +45,10 @@ export function rateLimit(opts: RateLimitOptions) {
 }
 
 // Presets
-export const authRateLimit = rateLimit({ windowSeconds: 60, maxRequests: 10, keyPrefix: 'rl:auth' });
+// Keep login and registration independent. The older shared auth bucket could
+// lock out a genuine student after a few retries or another action on a shared
+// campus IP address.
+export const loginRateLimit = rateLimit({ windowSeconds: 60, maxRequests: 30, keyPrefix: 'rl:login', keyByEmail: true });
+export const registerRateLimit = rateLimit({ windowSeconds: 10 * 60, maxRequests: 10, keyPrefix: 'rl:register', keyByEmail: true });
 export const swapRateLimit = rateLimit({ windowSeconds: 60, maxRequests: 5, keyPrefix: 'rl:swap' });
 export const generalRateLimit = rateLimit({ windowSeconds: 60, maxRequests: 60, keyPrefix: 'rl:api' });

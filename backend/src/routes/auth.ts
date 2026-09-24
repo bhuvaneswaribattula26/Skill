@@ -7,7 +7,7 @@ import { prisma } from '../lib/prisma';
 import { config } from '../config';
 import { sendEmail, verificationEmailHtml } from '../lib/email';
 import { isAllowedEmailDomain, registerSchema, loginSchema } from '../utils/validators';
-import { authRateLimit } from '../middleware/rateLimit';
+import { loginRateLimit, registerRateLimit } from '../middleware/rateLimit';
 import { requireAuth } from '../middleware/auth';
 
 const router = Router();
@@ -27,7 +27,7 @@ function signRefresh(userId: string) {
 }
 
 // POST /api/v1/auth/register
-router.post('/register', authRateLimit, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/register', registerRateLimit, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = registerSchema.parse(req.body);
 
@@ -123,7 +123,7 @@ router.post('/verify-email', async (req: Request, res: Response, next: NextFunct
 });
 
 // POST /api/v1/auth/login
-router.post('/login', authRateLimit, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/login', loginRateLimit, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = loginSchema.parse(req.body);
 

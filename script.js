@@ -664,6 +664,13 @@ document.addEventListener("submit", async (e) => {
   }
 
   if (f.matches("[data-auth]")) {
+    if (f.dataset.submitting === "true") return;
+    f.dataset.submitting = "true";
+    const submitButton = f.querySelector('button[type="submit"]');
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.setAttribute('aria-busy', 'true');
+    }
     const mode = f.dataset.auth;
     try {
       if (mode === "login") {
@@ -736,6 +743,12 @@ document.addEventListener("submit", async (e) => {
       router();
     } catch (err) {
       toast(err.message);
+    } finally {
+      f.dataset.submitting = "false";
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.removeAttribute('aria-busy');
+      }
     }
     return;
   }
