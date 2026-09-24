@@ -29,7 +29,14 @@ function signRefresh(userId: string) {
 // POST /api/v1/auth/register
 router.post('/register', registerRateLimit, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = registerSchema.parse(req.body);
+    const parsed = registerSchema.parse({
+      ...req.body,
+      email: typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : req.body?.email,
+    });
+    // Email addresses are case-insensitive. Normalizing here prevents a
+    // successful registration with one casing followed by a confusing login
+    // failure when the student types another casing or pastes whitespace.
+    const data = { ...parsed, email: parsed.email.trim().toLowerCase() };
 
     if (!isAllowedEmailDomain(data.email)) {
       res.status(400).json({
@@ -125,7 +132,11 @@ router.post('/verify-email', async (req: Request, res: Response, next: NextFunct
 // POST /api/v1/auth/login
 router.post('/login', loginRateLimit, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = loginSchema.parse(req.body);
+    const parsed = loginSchema.parse({
+      ...req.body,
+      email: typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : req.body?.email,
+    });
+    const data = { ...parsed, email: parsed.email.trim().toLowerCase() };
 
     const user = await prisma.user.findUnique({ where: { email: data.email } });
     if (!user) { res.status(401).json({ error: 'Invalid email or password' }); return; }
@@ -142,19 +153,21 @@ router.post('/login', loginRateLimit, async (req: Request, res: Response, next: 
       isVerified = true;
     }
 
-    // Update last active
-    await prisma.user.update({ where: { id: user.id }, data: { lastActiveAt: new Date() } });
-
     const accessToken = signAccess(user.id, user.email, user.isAdmin);
     const refreshToken = signRefresh(user.id);
 
-    await prisma.refreshToken.create({
-      data: {
-        userId: user.id,
-        token: refreshToken,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      },
-    });
+    // These independent writes used to run one after another. Running them
+    // together removes a full database round trip from every successful login.
+    await Promise.all([
+      prisma.user.update({ where: { id: user.id }, data: { lastActiveAt: new Date() } }),
+      prisma.refreshToken.create({
+        data: {
+          userId: user.id,
+          token: refreshToken,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        },
+      }),
+    ]);
 
     res.json({
       accessToken,

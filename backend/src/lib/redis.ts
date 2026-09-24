@@ -70,7 +70,18 @@ async function createRedisClient(): Promise<RedisLike> {
   }
   try {
     const { default: Redis } = await import('ioredis');
-    const client = new Redis(config.redis.url, { lazyConnect: true, maxRetriesPerRequest: 1 });
+    // Redis is optional in this project. Never make a student wait through
+    // ioredis's long default retry window when a local/old REDIS_URL is down.
+    const client = new Redis(config.redis.url, {
+      lazyConnect: true,
+      connectTimeout: 750,
+      commandTimeout: 750,
+      maxRetriesPerRequest: 1,
+      retryStrategy: () => null,
+    });
+    // The fallback below handles the failure; consuming the event prevents
+    // ioredis from printing a noisy unhandled-error message to the server log.
+    client.on('error', () => undefined);
     await client.ping();
     console.log('[Redis] Connected');
     return client as unknown as RedisLike;

@@ -38,7 +38,9 @@ async function main() {
   for (const profile of profiles) {
     const user = await prisma.user.upsert({
       where: { email: profile.email },
-      update: { name: profile.name, collegeName: profile.collegeName, bio: profile.bio, isVerified: true },
+      // Keep the documented demo credentials usable even if this account was
+      // seeded by an older version of the project.
+      update: { name: profile.name, collegeName: profile.collegeName, bio: profile.bio, passwordHash, isVerified: true },
       create: {
         email: profile.email,
         name: profile.name,

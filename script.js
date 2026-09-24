@@ -675,7 +675,7 @@ document.addEventListener("submit", async (e) => {
     try {
       if (mode === "login") {
         const credentials = {
-          email: $("#e").value,
+          email: $("#e").value.trim().toLowerCase(),
           password: $("#p").value,
         };
         await api.login(credentials);
@@ -685,7 +685,7 @@ document.addEventListener("submit", async (e) => {
         const userData = {
           name: $("#n").value,
           collegeName: $("#c").value,
-          email: $("#e2").value,
+          email: $("#e2").value.trim().toLowerCase(),
           password: $("#p2").value,
         };
         await api.register(userData);
