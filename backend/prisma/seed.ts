@@ -2,11 +2,6 @@ import 'dotenv/config';
 import bcrypt from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
 
-// Use the IPv4-compatible Supabase session pooler for local development.
-if (process.env.NODE_ENV === 'development' && process.env.DIRECT_URL) {
-  process.env.DATABASE_URL = process.env.DIRECT_URL;
-}
-
 const prisma = new PrismaClient();
 
 const profiles = [
@@ -38,8 +33,6 @@ async function main() {
   for (const profile of profiles) {
     const user = await prisma.user.upsert({
       where: { email: profile.email },
-      // Keep the documented demo credentials usable even if this account was
-      // seeded by an older version of the project.
       update: { name: profile.name, collegeName: profile.collegeName, bio: profile.bio, passwordHash, isVerified: true },
       create: {
         email: profile.email,

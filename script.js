@@ -659,12 +659,6 @@ document.addEventListener("submit", async (e) => {
       toast("Swap request sent! 🎉");
     } catch (err) {
       toast(err.message);
-    } finally {
-      f.dataset.submitting = "false";
-      if (submitButton) {
-        submitButton.disabled = false;
-        submitButton.removeAttribute('aria-busy');
-      }
     }
     return;
   }
@@ -711,12 +705,6 @@ document.addEventListener("submit", async (e) => {
       }
     } catch (err) {
       toast(err.message);
-    } finally {
-      f.dataset.submitting = "false";
-      if (submitButton) {
-        submitButton.disabled = false;
-        submitButton.removeAttribute('aria-busy');
-      }
     }
     return;
   }
@@ -733,12 +721,6 @@ document.addEventListener("submit", async (e) => {
       location.hash = "#/profile";
     } catch (err) {
       toast(err.message);
-    } finally {
-      f.dataset.submitting = "false";
-      if (submitButton) {
-        submitButton.disabled = false;
-        submitButton.removeAttribute('aria-busy');
-      }
     }
     return;
   }
@@ -759,12 +741,6 @@ document.addEventListener("submit", async (e) => {
       location.hash = "#/my-skills";
     } catch (err) {
       toast(err.message);
-    } finally {
-      f.dataset.submitting = "false";
-      if (submitButton) {
-        submitButton.disabled = false;
-        submitButton.removeAttribute('aria-busy');
-      }
     }
     return;
   }
@@ -776,12 +752,6 @@ document.addEventListener("submit", async (e) => {
       router();
     } catch (err) {
       toast(err.message);
-    } finally {
-      f.dataset.submitting = "false";
-      if (submitButton) {
-        submitButton.disabled = false;
-        submitButton.removeAttribute('aria-busy');
-      }
     }
     return;
   }
