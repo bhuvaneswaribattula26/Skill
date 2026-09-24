@@ -51,11 +51,11 @@ router.post('/', requireAuth, requireVerified, swapRateLimit, async (req: Reques
       data: {
         userId: data.recipientId,
         type: 'swap_request',
-        payload: {
+        payload: JSON.stringify({
           swapId: swap.id,
           requesterName: swap.requester.name,
           message: data.message,
-        },
+        }),
       },
     });
 
@@ -147,7 +147,7 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response, next: Next
       data: {
         userId: notifyUserId,
         type: `swap_${data.status}`,
-        payload: { swapId: swap.id, fromName: notifyName, status: data.status },
+        payload: JSON.stringify({ swapId: swap.id, fromName: notifyName, status: data.status }),
       },
     });
 
@@ -156,3 +156,4 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response, next: Next
 });
 
 export default router;
+

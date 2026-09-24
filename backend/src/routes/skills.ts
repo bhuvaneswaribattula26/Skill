@@ -11,7 +11,7 @@ router.get('/', requireAuth, async (req: Request, res: Response, next: NextFunct
     const { q, category } = req.query as Record<string, string>;
     const skills = await prisma.skill.findMany({
       where: {
-        ...(q ? { name: { contains: q, mode: 'insensitive' } } : {}),
+        ...(q ? { name: { contains: q,  } } : {}),
         ...(category ? { category } : {}),
       },
       orderBy: { name: 'asc' },
@@ -30,3 +30,4 @@ router.get('/categories', async (_req: Request, res: Response, next: NextFunctio
 });
 
 export default router;
+

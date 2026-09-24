@@ -659,6 +659,12 @@ document.addEventListener("submit", async (e) => {
       toast("Swap request sent! 🎉");
     } catch (err) {
       toast(err.message);
+    } finally {
+      f.dataset.submitting = "false";
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.removeAttribute('aria-busy');
+      }
     }
     return;
   }
@@ -678,16 +684,25 @@ document.addEventListener("submit", async (e) => {
           email: $("#e").value.trim().toLowerCase(),
           password: $("#p").value,
         };
+        if (!credentials.email || !credentials.password) {
+          throw new Error("Enter both your email and password.");
+        }
         await api.login(credentials);
         toast("Logged in — welcome back!");
         location.hash = "#/dashboard";
       } else if (mode === "signup") {
         const userData = {
-          name: $("#n").value,
-          collegeName: $("#c").value,
+          name: $("#n").value.trim(),
+          collegeName: $("#c").value.trim(),
           email: $("#e2").value.trim().toLowerCase(),
           password: $("#p2").value,
         };
+        if (!userData.name || !userData.collegeName || !userData.email || !userData.password) {
+          throw new Error("Complete your name, college, email, and password to create an account.");
+        }
+        if (userData.password.length < 8) {
+          throw new Error("Use a password with at least 8 characters.");
+        }
         await api.register(userData);
         toast("Account created! You can now log in.");
         location.hash = "#/login";
@@ -696,6 +711,12 @@ document.addEventListener("submit", async (e) => {
       }
     } catch (err) {
       toast(err.message);
+    } finally {
+      f.dataset.submitting = "false";
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.removeAttribute('aria-busy');
+      }
     }
     return;
   }
@@ -712,6 +733,12 @@ document.addEventListener("submit", async (e) => {
       location.hash = "#/profile";
     } catch (err) {
       toast(err.message);
+    } finally {
+      f.dataset.submitting = "false";
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.removeAttribute('aria-busy');
+      }
     }
     return;
   }
@@ -732,6 +759,12 @@ document.addEventListener("submit", async (e) => {
       location.hash = "#/my-skills";
     } catch (err) {
       toast(err.message);
+    } finally {
+      f.dataset.submitting = "false";
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.removeAttribute('aria-busy');
+      }
     }
     return;
   }
@@ -792,3 +825,4 @@ function updateAuthActions() {
   $('#theme-toggle').addEventListener('click', toggleTheme);
   $('#menu-btn').addEventListener('click', () => $('#nav').classList.toggle('open'));
 }
+

@@ -39,7 +39,12 @@ const api = {
             return this.request(endpoint, options);
           }
         }
-        throw new Error(data.error || `Server error: ${response.status}`);
+        // Zod validation errors include the field name and are far more useful
+        // to a student than the generic "Validation error" heading.
+        const fieldErrors = Array.isArray(data.details)
+          ? data.details.map((item) => `${item.path || 'form'}: ${item.message}`).join(' ')
+          : '';
+        throw new Error(fieldErrors || data.error || `Server error: ${response.status}`);
       }
 
       return data;

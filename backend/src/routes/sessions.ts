@@ -40,7 +40,7 @@ router.post('/', requireAuth, requireVerified, async (req: Request, res: Respons
       data: {
         userId: otherUserId,
         type: 'session_scheduled',
-        payload: { sessionId: session.id, scheduledAt: data.scheduledAt },
+        payload: JSON.stringify({ sessionId: session.id, scheduledAt: data.scheduledAt }),
       },
     });
 
@@ -150,14 +150,14 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response, next: Next
           data: {
             userId: requesterId,
             type: 'review_prompt',
-            payload: { sessionId: session.id },
+            payload: JSON.stringify({ sessionId: session.id }),
           },
         }),
         prisma.notification.create({
           data: {
             userId: recipientId,
             type: 'review_prompt',
-            payload: { sessionId: session.id },
+            payload: JSON.stringify({ sessionId: session.id }),
           },
         }),
       ]);
@@ -180,3 +180,4 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response, next: Next
 });
 
 export default router;
+

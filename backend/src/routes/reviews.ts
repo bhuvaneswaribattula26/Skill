@@ -57,7 +57,7 @@ router.post('/', requireAuth, requireVerified, async (req: Request, res: Respons
       data: {
         userId: data.revieweeId,
         type: 'review_received',
-        payload: { reviewId: review.id, rating: data.rating, reviewerName: review.reviewer.name },
+        payload: JSON.stringify({ reviewId: review.id, rating: data.rating, reviewerName: review.reviewer.name }),
       },
     });
 
@@ -72,3 +72,4 @@ router.post('/', requireAuth, requireVerified, async (req: Request, res: Respons
 });
 
 export default router;
+

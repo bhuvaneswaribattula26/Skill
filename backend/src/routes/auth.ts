@@ -248,3 +248,4 @@ router.post('/logout', requireAuth, async (req: Request, res: Response, next: Ne
 });
 
 export default router;
+

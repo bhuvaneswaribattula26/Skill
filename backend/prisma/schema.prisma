@@ -4,11 +4,11 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url = "file:./dev.db"
   // Supabase transaction poolers are ideal for the running app, but Prisma
   // schema changes require the project's direct PostgreSQL connection.
-  directUrl = env("DIRECT_URL")
+  
 }
 
 // ─── User ──────────────────────────────────────────────────────────────────
@@ -93,14 +93,7 @@ model UserSkillLearn {
 }
 
 // ─── SwapRequest ───────────────────────────────────────────────────────────
-enum SwapStatus {
-  requested
-  accepted
-  declined
-  scheduled
-  completed
-  cancelled
-}
+
 
 model SwapRequest {
   id          String     @id @default(cuid())
@@ -108,7 +101,7 @@ model SwapRequest {
   recipientId String
   skillId     String?    // the primary skill being swapped
   message     String     @default("")
-  status      SwapStatus @default(requested)
+  status      String @default("requested")
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
@@ -124,18 +117,14 @@ model SwapRequest {
 }
 
 // ─── Session ───────────────────────────────────────────────────────────────
-enum SessionStatus {
-  scheduled
-  completed
-  cancelled
-}
+
 
 model Session {
   id              String        @id @default(cuid())
   swapRequestId   String
   scheduledAt     DateTime
   durationMinutes Int           @default(60)
-  status          SessionStatus @default(scheduled)
+  status          String @default("scheduled")
   meetingLink     String        @default("")
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -203,7 +192,7 @@ model Notification {
   id        String   @id @default(cuid())
   userId    String
   type      String   // swap_request | swap_accepted | session_reminder | review_prompt | credit_earned
-  payload   Json     @default("{}")
+  payload String @default("{}")
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 
@@ -214,18 +203,14 @@ model Notification {
 }
 
 // ─── Report ───────────────────────────────────────────────────────────────
-enum ReportStatus {
-  pending
-  resolved
-  dismissed
-}
+
 
 model Report {
   id             String       @id @default(cuid())
   reporterId     String
   reportedUserId String
   reason         String
-  status         ReportStatus @default(pending)
+  status         String @default("pending")
   adminNote      String       @default("")
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -251,3 +236,4 @@ model RefreshToken {
   @@index([token])
   @@index([userId])
 }
+

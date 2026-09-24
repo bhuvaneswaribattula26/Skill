@@ -64,10 +64,10 @@ router.get('/', requireAuth, async (req: Request, res: Response, next: NextFunct
         id: { not: req.user!.userId },
         ...(q ? {
           OR: [
-            { name: { contains: q, mode: 'insensitive' } },
-            { collegeName: { contains: q, mode: 'insensitive' } },
-            { skillsTeach: { some: { skill: { name: { contains: q, mode: 'insensitive' } } } } },
-            { skillsLearn: { some: { skill: { name: { contains: q, mode: 'insensitive' } } } } },
+            { name: { contains: q,  } },
+            { collegeName: { contains: q,  } },
+            { skillsTeach: { some: { skill: { name: { contains: q,  } } } } },
+            { skillsLearn: { some: { skill: { name: { contains: q,  } } } } },
           ],
         } : {}),
         ...(category ? {
@@ -181,3 +181,4 @@ router.get('/:id/reviews', requireAuth, async (req: Request, res: Response, next
 });
 
 export default router;
+
